@@ -1113,9 +1113,20 @@
         window.addEventListener('deviceorientation', handleOrientation, true);
         window.addEventListener('devicemotion', handleMotion, true);
 
+        const isMobile = () => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
         // Simulate movement on desktop
         function simulateMotion() {
             if (!hasRealMotion) {
+                if (!isMobile()) {
+                    document.getElementById('accel-msg').textContent = 'NO SENSOR AVAILABLE';
+                    document.getElementById('accel-ind').className = 'status-indicator';
+                    document.getElementById('gyro-msg').textContent = 'NO SENSOR AVAILABLE';
+                    document.getElementById('gyro-ind').className = 'status-indicator';
+                    document.getElementById('compass-msg').textContent = 'NO SENSOR AVAILABLE';
+                    document.getElementById('compass-ind').className = 'status-indicator';
+                    return false;
+                }
                 const t = Date.now() / 1000;
                 sim.ax = Math.sin(t * 0.5) * 2;
                 sim.ay = Math.cos(t * 0.3) * 3;
@@ -1123,11 +1134,16 @@
                 sim.alpha = (sim.alpha + 0.3) % 360;
                 sim.beta = Math.sin(t * 0.4) * 30;
                 sim.gamma = Math.cos(t * 0.6) * 20;
+                return true;
             }
+            return true;
         }
 
         function updateMotionUI() {
-            simulateMotion();
+            if (!simulateMotion() && !hasRealMotion) {
+                document.querySelectorAll('#accel-x, #accel-y, #accel-z, #gyro-alpha, #gyro-beta, #gyro-gamma, #compass-deg').forEach(el => el.textContent = '—');
+                return;
+            }
             document.getElementById('accel-x').textContent = sim.ax.toFixed(3) + ' m/s²';
             document.getElementById('accel-y').textContent = sim.ay.toFixed(3) + ' m/s²';
             document.getElementById('accel-z').textContent = sim.az.toFixed(3) + ' m/s²';
@@ -1179,8 +1195,8 @@
             document.getElementById('geo-lat').textContent = '—';
             document.getElementById('geo-lon').textContent = '—';
             document.getElementById('geo-acc').textContent = '—';
-            document.getElementById('geo-ind').className = 'status-indicator warn';
-            document.getElementById('geo-msg').textContent = msg ? 'DENIED' : 'NOT SUPPORTED';
+            document.getElementById('geo-ind').className = 'status-indicator';
+            document.getElementById('geo-msg').textContent = !isMobile() ? 'NO SENSOR AVAILABLE' : (msg ? 'DENIED' : 'NOT SUPPORTED');
         }
 
         // ===================================================
@@ -1212,6 +1228,14 @@
         }
 
         function setBatFallback() {
+            if (!isMobile()) {
+                document.getElementById('bat-level').textContent = '—';
+                document.getElementById('bat-charging').textContent = '—';
+                document.getElementById('bat-time').textContent = '—';
+                document.getElementById('bat-ind').className = 'status-indicator';
+                document.getElementById('bat-msg').textContent = 'NO SENSOR AVAILABLE';
+                return;
+            }
             // Simulate
             let fakeBat = 78;
             function simBat() {
@@ -1280,6 +1304,13 @@
         }
 
         function simulateMic() {
+            if (!isMobile()) {
+                document.getElementById('mic-level').textContent = '—';
+                document.getElementById('mic-peak').textContent = '—';
+                document.getElementById('mic-ind').className = 'status-indicator';
+                document.getElementById('mic-msg').textContent = 'NO SENSOR AVAILABLE';
+                return;
+            }
             let phase = 0;
             setInterval(() => {
                 phase += 0.2;
@@ -1316,6 +1347,13 @@
         } else { simulateLight(); }
 
         function simulateLight() {
+            if (!isMobile()) {
+                document.getElementById('light-lux').textContent = '—';
+                document.getElementById('light-cond').textContent = '—';
+                document.getElementById('light-ind').className = 'status-indicator';
+                document.getElementById('light-msg').textContent = 'NO SENSOR AVAILABLE';
+                return;
+            }
             let lux = 350;
             setInterval(() => {
                 lux = Math.max(10, Math.min(1000, lux + (Math.random() - 0.5) * 30));
@@ -1346,6 +1384,13 @@
         } else { simulateProx(); }
 
         function simulateProx() {
+            if (!isMobile()) {
+                document.getElementById('prox-dist').textContent = '—';
+                document.getElementById('prox-state').textContent = '—';
+                document.getElementById('prox-ind').className = 'status-indicator';
+                document.getElementById('prox-msg').textContent = 'NO SENSOR AVAILABLE';
+                return;
+            }
             let d = 50;
             setInterval(() => {
                 d = Math.max(0, Math.min(100, d + (Math.random() - 0.5) * 10));
