@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firefox/Gecko Audit | OmniQA</title>
+    <style>
+        :root {
+            --bg: #0b0e14;
+            --firefox: #FF9500;
+            --text: #cfd0d2;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Fira Sans', system-ui, sans-serif;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .card {
+            background: #1c1b22;
+            border: 1px solid rgba(255,149,0,0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            color: var(--firefox);
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+        .feature-box {
+            padding: 1rem;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+        }
+        .status {
+            font-weight: 600;
+            float: right;
+        }
+        .supported { color: #00ddff; }
+        .unsupported { color: #ff5500; }
+
+        /* Gecko specific CSS */
+        .moz-scrollbar {
+            height: 100px;
+            overflow-y: scroll;
+            scrollbar-width: thin;
+            scrollbar-color: var(--firefox) transparent;
+            border: 1px solid #333;
+            padding: 10px;
+            margin-top: 1rem;
+        }
+        
+        @-moz-document url-prefix() {
+            .gecko-detect {
+                color: var(--firefox);
+                font-weight: bold;
+            }
+            .gecko-detect::after {
+                content: " (Gecko Engine Detected via CSS)";
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Gecko Engine Audit</h1>
+        <p style="margin-bottom: 2rem; opacity: 0.7;">Detecting features optimized for Mozilla architecture.</p>
+
+        <div class="feature-box">
+            scrollbar-width (Legacy Firefox)
+            <span class="status supported">IMPLEMENTED</span>
+        </div>
+
+        <div class="feature-box">
+            @-moz-document (Extension)
+            <span class="status gecko-detect">CHECKING...</span>
+        </div>
+
+        <div class="feature-box">
+            InstallTrigger API
+            <span id="install-status" class="status">Checking...</span>
+        </div>
+
+        <div class="feature-box">
+            mozGetUserMedia
+            <span id="mozmedia-status" class="status">Checking...</span>
+        </div>
+
+        <div class="moz-scrollbar">
+            <p>Content to demonstrate scrollbar-width: thin; and scrollbar-color...</p>
+            <p>Line 1</p><p>Line 2</p><p>Line 3</p><p>Line 4</p><p>Line 5</p><p>Line 6</p>
+        </div>
+    </div>
+
+    <script>
+        // 1. InstallTrigger (Firefox exclusive)
+        if (typeof InstallTrigger !== 'undefined') {
+            document.getElementById('install-status').textContent = 'SUPPORTED';
+            document.getElementById('install-status').className = 'status supported';
+        } else {
+            document.getElementById('install-status').textContent = 'UNSUPPORTED';
+            document.getElementById('install-status').className = 'status unsupported';
+        }
+
+        // 2. mozGetUserMedia (Legacy Gecko)
+        if (navigator.mozGetUserMedia) {
+            document.getElementById('mozmedia-status').textContent = 'SUPPORTED';
+            document.getElementById('mozmedia-status').className = 'status supported';
+        } else {
+            document.getElementById('mozmedia-status').textContent = 'UNSUPPORTED';
+            document.getElementById('mozmedia-status').className = 'status unsupported';
+        }
+
+        console.log('Is Firefox:', /firefox/i.test(navigator.userAgent));
+    </script>
+</body>
+</html>

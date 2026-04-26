@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legacy API Probe | OmniQA</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --primary: #fbbf24;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --warning: #f59e0b;
+        }
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: var(--card);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 2rem;
+        }
+        h1 {
+            color: var(--primary);
+            font-size: 1.5rem;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 0.5rem;
+            margin-bottom: 2rem;
+        }
+        .log-entry {
+            background: rgba(0,0,0,0.3);
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-size: 0.8rem;
+            border-left: 4px solid var(--warning);
+        }
+        .status {
+            font-weight: bold;
+            color: var(--warning);
+        }
+        button {
+            background: var(--primary);
+            color: black;
+            border: none;
+            padding: 0.5rem 1rem;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>[DEPRECATED_API_SURFACE_AUDIT]</h1>
+        
+        <div class="log-entry">
+            DETECTING: document.all (Legacy IE Support)<br>
+            STATUS: <span id="doc-all" class="status">Checking...</span>
+        </div>
+
+        <div class="log-entry">
+            DETECTING: webkitStorageInfo (Chrome Legacy)<br>
+            STATUS: <span id="storage-info" class="status">Checking...</span>
+        </div>
+
+        <div class="log-entry">
+            DETECTING: navigator.vibrate<br>
+            STATUS: <span id="vibrate" class="status">Checking...</span>
+        </div>
+
+        <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+            <button onclick="triggerSyncXHR()">Trigger Sync XHR</button>
+            <button onclick="triggerWarn()">Trigger Console Warn</button>
+        </div>
+
+        <div id="results" style="margin-top: 2rem; font-size: 0.75rem; color: var(--muted);"></div>
+    </div>
+
+    <script>
+        // 1. document.all
+        if (document.all) {
+            document.getElementById('doc-all').textContent = "PRESENT (Legacy Detected)";
+            console.warn("Compatibility Alert: document.all is a non-standard legacy feature.");
+        } else {
+            document.getElementById('doc-all').textContent = "ABSENT";
+        }
+
+        // 2. webkitStorageInfo
+        if (window.webkitStorageInfo) {
+            document.getElementById('storage-info').textContent = "PRESENT (Deprecated Detected)";
+            console.warn("Compatibility Alert: webkitStorageInfo is deprecated.");
+        } else {
+            document.getElementById('storage-info').textContent = "ABSENT";
+        }
+
+        // 3. navigator.vibrate
+        if (navigator.vibrate) {
+            document.getElementById('vibrate').textContent = "AVAILABLE";
+        } else {
+            document.getElementById('vibrate').textContent = "UNAVAILABLE";
+        }
+
+        function triggerSyncXHR() {
+            const xhr = new XMLHttpRequest();
+            try {
+                // Synchronous XHR on the main thread is deprecated
+                xhr.open('GET', 'index.html', false); 
+                xhr.send(null);
+                document.getElementById('results').textContent = "Sync XHR executed. Check console for deprecation warning.";
+                console.warn("Deprecation Warning: Synchronous XMLHttpRequest on the main thread is deprecated.");
+            } catch(e) {
+                document.getElementById('results').textContent = "Sync XHR blocked or failed: " + e.message;
+            }
+        }
+
+        function triggerWarn() {
+            console.warn("Manual Probe: Triggering intentional compatibility warning for audit stream.");
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safari/WebKit Audit | OmniQA</title>
+    <!-- Safari Specific Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>
+        :root {
+            --bg: #fafafa;
+            --safari: #00AEEF;
+            --text: #1d1d1f;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .card {
+            background: white;
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 20px;
+            padding: 2.5rem;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+        h1 {
+            color: var(--safari);
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .feature-box {
+            padding: 1rem;
+            background: #f5f5f7;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        .status {
+            font-weight: 600;
+            float: right;
+        }
+        .supported { color: #34c759; }
+        .unsupported { color: #ff3b30; }
+
+        /* WebKit specific CSS */
+        .webkit-scrolling {
+            height: 100px;
+            overflow-y: scroll;
+            -webkit-overflow-scrolling: touch;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        
+        .backdrop-test {
+            margin-top: 1rem;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.5);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>WebKit Engine Audit</h1>
+        <p style="margin-bottom: 2rem; opacity: 0.6;">Detecting features optimized for Apple ecosystems.</p>
+
+        <div class="feature-box">
+            -webkit-overflow-scrolling
+            <span class="status supported">PREFIXED</span>
+        </div>
+
+        <div class="feature-box">
+            -webkit-backdrop-filter
+            <span class="status supported">REQUIRED</span>
+        </div>
+
+        <div class="feature-box">
+            window.safari API
+            <span id="safari-status" class="status">Checking...</span>
+        </div>
+
+        <div class="feature-box">
+            GestureEvent (iOS)
+            <span id="gesture-status" class="status">Checking...</span>
+        </div>
+
+        <div class="backdrop-test">
+            Blur Surface (WebKit)
+        </div>
+
+        <div class="webkit-scrolling">
+            <p>Scroll content with -webkit-overflow-scrolling: touch...</p>
+            <p>Content block 1</p>
+            <p>Content block 2</p>
+            <p>Content block 3</p>
+            <p>Content block 4</p>
+            <p>Content block 5</p>
+        </div>
+    </div>
+
+    <script>
+        // 1. window.safari
+        if (window.safari) {
+            document.getElementById('safari-status').textContent = 'SUPPORTED';
+            document.getElementById('safari-status').className = 'status supported';
+        } else {
+            document.getElementById('safari-status').textContent = 'UNSUPPORTED';
+            document.getElementById('safari-status').className = 'status unsupported';
+        }
+
+        // 2. GestureEvent
+        if (window.GestureEvent) {
+            document.getElementById('gesture-status').textContent = 'SUPPORTED';
+            document.getElementById('gesture-status').className = 'status supported';
+        } else {
+            document.getElementById('gesture-status').textContent = 'UNSUPPORTED';
+            document.getElementById('gesture-status').className = 'status unsupported';
+        }
+
+        // WebKit Fullscreen API
+        console.log('WebKit Fullscreen support:', !!document.webkitFullscreenEnabled);
+    </script>
+</body>
+</html>

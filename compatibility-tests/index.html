@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compatibility Labs | OmniQA Suite</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;900&family=JetBrains+Mono&display=swap');
+
+        :root {
+            --bg: #030712;
+            --card: #0f172a;
+            --primary: #6366f1;
+            --secondary: #a855f7;
+            --accent: #f43f5e;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Background Glow */
+        .glow {
+            position: fixed;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, rgba(0, 0, 0, 0) 70%);
+            top: -200px;
+            right: -200px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        header {
+            position: relative;
+            z-index: 10;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 100px;
+            backdrop-blur: 10px;
+        }
+
+        .logo-box {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            color: white;
+            font-size: 0.8rem;
+        }
+
+        .logo span {
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--muted);
+        }
+
+        h1 {
+            font-size: 4rem;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.02em;
+            background: linear-gradient(to bottom, #fff 30%, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            max-width: 600px;
+            margin: 0 auto;
+            color: var(--muted);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        main {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            width: 100%;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .test-card {
+            background: var(--card);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 32px;
+            padding: 2.5rem;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .test-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .test-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .test-card:hover::before {
+            opacity: 1;
+        }
+
+        .icon-wrap {
+            width: 56px;
+            height: 56px;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+
+        .test-card h2 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .test-card p {
+            color: var(--muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            flex: 1;
+        }
+
+        .features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .feature-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            padding: 0.4rem 0.8rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            color: var(--primary);
+        }
+
+        footer {
+            margin-top: auto;
+            padding: 4rem 2rem;
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="glow"></div>
+    
+    <header>
+        <div class="logo">
+            <div class="logo-box">QA</div>
+            <span>OmniSuite Compatibility Labs</span>
+        </div>
+        <h1>Neural Surface Testing</h1>
+        <p class="subtitle">A controlled environment designed to challenge browser engines and validate heuristic detection algorithms.</p>
+    </header>
+
+    <main>
+        <div class="grid">
+            <a href="js-features.html" class="test-card">
+                <div class="icon-wrap">JS</div>
+                <h2>JavaScript Execution</h2>
+                <p>Validates ES2020+ syntax support, runtime fault interception, and unhandled promise rejection tracking.</p>
+                <div class="features">
+                    <span class="feature-tag">Optional Chaining</span>
+                    <span class="feature-tag">Nullish Coalesce</span>
+                    <span class="feature-tag">Execution Faults</span>
+                </div>
+            </a>
+
+            <a href="css-features.html" class="test-card">
+                <div class="icon-wrap">CSS</div>
+                <h2>Modern Styling</h2>
+                <p>Audits advanced CSS selectors, container queries, and next-gen layout properties for engine rendering accuracy.</p>
+                <div class="features">
+                    <span class="feature-tag">:has() Selector</span>
+                    <span class="feature-tag">@container</span>
+                    <span class="feature-tag">Aspect Ratio</span>
+                </div>
+            </a>
+
+            <a href="chrome-only.html" class="test-card">
+                <div class="icon-wrap" style="color: #4285F4; background: rgba(66, 133, 244, 0.1);">Blink</div>
+                <h2>Chrome Audit</h2>
+                <p>Probes for Blink-exclusive APIs like EyeDropper, File System Access, and Chromium vendor prefixes.</p>
+                <div class="features">
+                    <span class="feature-tag">EyeDropper</span>
+                    <span class="feature-tag">UserAgentData</span>
+                    <span class="feature-tag">-webkit-</span>
+                </div>
+            </a>
+
+            <a href="safari-only.html" class="test-card">
+                <div class="icon-wrap" style="color: #00AEEF; background: rgba(0, 174, 239, 0.1);">WebKit</div>
+                <h2>Safari Audit</h2>
+                <p>Detects Apple-ecosystem features including GestureEvent, WebKit backdrop filters, and smooth touch scrolling.</p>
+                <div class="features">
+                    <span class="feature-tag">GestureEvent</span>
+                    <span class="feature-tag">BackdropBlur</span>
+                    <span class="feature-tag">TouchScroll</span>
+                </div>
+            </a>
+
+            <a href="firefox-only.html" class="test-card">
+                <div class="icon-wrap" style="color: #FF9500; background: rgba(255, 149, 0, 0.1);">Gecko</div>
+                <h2>Firefox Audit</h2>
+                <p>Validates Mozilla-specific implementations like InstallTrigger, Gecko CSS extensions, and legacy media APIs.</p>
+                <div class="features">
+                    <span class="feature-tag">InstallTrigger</span>
+                    <span class="feature-tag">@-moz-doc</span>
+                    <span class="feature-tag">ScrollStyles</span>
+                </div>
+            </a>
+
+            <a href="deprecated-apis.html" class="test-card">
+                <div class="icon-wrap">API</div>
+                <h2>Legacy & Deprecation</h2>
+                <p>Probes for standard-deviating legacy APIs and deprecated interfaces that may cause performance degradation.</p>
+                <div class="features">
+                    <span class="feature-tag">document.all</span>
+                    <span class="feature-tag">webkitStorageInfo</span>
+                    <span class="feature-tag">Sync XHR</span>
+                </div>
+            </a>
+        </div>
+    </main>
+
+    <footer>
+        Authorized OmniQA Testing Environment &copy; 2026
+    </footer>
+</body>
+</html>

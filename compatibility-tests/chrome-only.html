@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chrome/Blink Audit | OmniQA</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --chrome: #4285F4;
+            --text: #f8fafc;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--chrome);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            color: var(--chrome);
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+        }
+        .feature-box {
+            padding: 1rem;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.8rem;
+        }
+        .status {
+            font-weight: bold;
+            float: right;
+        }
+        .supported { color: #4ade80; }
+        .unsupported { color: #f87171; }
+
+        /* Blink-specific CSS */
+        .webkit-only {
+            background: -webkit-linear-gradient(left, var(--chrome), #34a853);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+            font-size: 1.5rem;
+        }
+
+        button {
+            background: var(--chrome);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Blink Engine Audit</h1>
+        <p style="margin-bottom: 2rem; opacity: 0.7;">Detecting features exclusive to Chromium-based browsers.</p>
+
+        <div class="feature-box">
+            -webkit-text-fill-color
+            <span class="status webkit-only">ACTIVE</span>
+        </div>
+
+        <div class="feature-box">
+            EyeDropper API
+            <span id="eyedropper-status" class="status">Checking...</span>
+        </div>
+
+        <div class="feature-box">
+            navigator.userAgentData
+            <span id="uadata-status" class="status">Checking...</span>
+        </div>
+
+        <div class="feature-box">
+            showOpenFilePicker
+            <span id="filepicker-status" class="status">Checking...</span>
+        </div>
+
+        <div style="margin-top: 2rem;">
+            <button onclick="launchEyeDropper()">Launch EyeDropper</button>
+        </div>
+    </div>
+
+    <script>
+        // 1. EyeDropper API (Chrome/Edge only)
+        if ('EyeDropper' in window) {
+            document.getElementById('eyedropper-status').textContent = 'SUPPORTED';
+            document.getElementById('eyedropper-status').className = 'status supported';
+        } else {
+            document.getElementById('eyedropper-status').textContent = 'UNSUPPORTED';
+            document.getElementById('eyedropper-status').className = 'status unsupported';
+        }
+
+        // 2. Client Hints API
+        if (navigator.userAgentData) {
+            document.getElementById('uadata-status').textContent = 'SUPPORTED';
+            document.getElementById('uadata-status').className = 'status supported';
+        } else {
+            document.getElementById('uadata-status').textContent = 'UNSUPPORTED';
+            document.getElementById('uadata-status').className = 'status unsupported';
+        }
+
+        // 3. File System Access API
+        if ('showOpenFilePicker' in window) {
+            document.getElementById('filepicker-status').textContent = 'SUPPORTED';
+            document.getElementById('filepicker-status').className = 'status supported';
+        } else {
+            document.getElementById('filepicker-status').textContent = 'UNSUPPORTED';
+            document.getElementById('filepicker-status').className = 'status unsupported';
+        }
+
+        async function launchEyeDropper() {
+            if (!('EyeDropper' in window)) return alert('EyeDropper not supported in this browser.');
+            const eyeDropper = new EyeDropper();
+            try {
+                const result = await eyeDropper.open();
+                console.log('Selected color:', result.sRGBHex);
+            } catch (e) {
+                console.warn('EyeDropper closed or failed');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS Compatibility Probe | OmniQA</title>
+    <style>
+        :root {
+            --bg: #050505;
+            --card: #0a0a0a;
+            --primary: #4f46e5;
+            --secondary: #10b981;
+            --text: #e5e7eb;
+            --muted: #6b7280;
+            --error: #ef4444;
+        }
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            padding: 2rem;
+            background: var(--card);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, var(--primary), #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        p {
+            color: var(--muted);
+            line-height: 1.6;
+        }
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        .status-card {
+            padding: 1.5rem;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            font-size: 0.875rem;
+        }
+        .status-card .label {
+            display: block;
+            color: var(--muted);
+            text-transform: uppercase;
+            font-size: 0.65rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        }
+        .status-card .value {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+        .error-btn {
+            margin-top: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--error);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .error-btn:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">⚡</div>
+        <h1>JS Compatibility Probe</h1>
+        <p>This page utilizes ES2020+ features to verify the detection capabilities of the OmniQA engine.</p>
+        
+        <div class="status-grid">
+            <div class="status-card">
+                <span class="label">Optional Chaining</span>
+                <span id="opt-chain" class="value">Checking...</span>
+            </div>
+            <div class="status-card">
+                <span class="label">Nullish Coalescing</span>
+                <span id="nullish" class="value">Checking...</span>
+            </div>
+            <div class="status-card">
+                <span class="label">Logical Assignment</span>
+                <span id="logical" class="value">Checking...</span>
+            </div>
+            <div class="status-card">
+                <span class="label">ReplaceAll</span>
+                <span id="replace-all" class="value">Checking...</span>
+            </div>
+        </div>
+
+        <button class="error-btn" onclick="triggerRuntimeError()">Trigger Execution Fault</button>
+        <button class="error-btn" style="background: var(--primary); margin-left: 1rem;" onclick="triggerPromiseRejection()">Trigger Unhandled Rejection</button>
+    </div>
+
+    <script>
+        // 1. ES2020: Optional Chaining
+        try {
+            const obj = { a: { b: 1 } };
+            document.getElementById('opt-chain').textContent = obj?.a?.b === 1 ? 'Supported' : 'Failed';
+        } catch(e) {
+            document.getElementById('opt-chain').textContent = 'Error: ' + e.message;
+            document.getElementById('opt-chain').style.color = 'var(--error)';
+        }
+
+        // 2. ES2020: Nullish Coalescing
+        try {
+            const val = null ?? 'Supported';
+            document.getElementById('nullish').textContent = val;
+        } catch(e) {
+            document.getElementById('nullish').textContent = 'Error: ' + e.message;
+            document.getElementById('nullish').style.color = 'var(--error)';
+        }
+
+        // 3. ES2021: Logical Assignment
+        try {
+            let x = 0;
+            x ||= 10;
+            document.getElementById('logical').textContent = x === 10 ? 'Supported' : 'Failed';
+        } catch(e) {
+            document.getElementById('logical').textContent = 'Error: ' + e.message;
+            document.getElementById('logical').style.color = 'var(--error)';
+        }
+
+        // 4. ES2021: String.replaceAll
+        try {
+            const str = 'test test';
+            document.getElementById('replace-all').textContent = str.replaceAll('test', 'ok') === 'ok ok' ? 'Supported' : 'Failed';
+        } catch(e) {
+            document.getElementById('replace-all').textContent = 'Error: ' + e.message;
+            document.getElementById('replace-all').style.color = 'var(--error)';
+        }
+
+        // Intentional Runtime Error
+        function triggerRuntimeError() {
+            console.log("Attempting to call non-existent function...");
+            undefinedFunctionCall();
+        }
+
+        // Intentional Unhandled Rejection
+        function triggerPromiseRejection() {
+            new Promise((resolve, reject) => {
+                reject(new Error("Simulated async failure in neural bridge."));
+            });
+        }
+    </script>
+</body>
+</html>
