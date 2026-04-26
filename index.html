@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SensorKit — Mobile Sensor Explorer</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #050a0e;
+            --surface: #0d1a22;
+            --card: #0f2030;
+            --border: #1a3a52;
+            --accent: #00e5ff;
+            --accent2: #ff6b35;
+            --accent3: #a8ff78;
+            --text: #e8f4f8;
+            --muted: #5a8a9f;
+            --glow: rgba(0, 229, 255, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Space Mono', monospace;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Background grid */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Radial glow top */
+        body::after {
+            content: '';
+            position: fixed;
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 400px;
+            background: radial-gradient(ellipse, rgba(0, 229, 255, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        header {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 60px 20px 40px;
+        }
+
+        .logo-tag {
+            display: inline-block;
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 4px;
+            color: var(--accent);
+            text-transform: uppercase;
+            border: 1px solid var(--border);
+            padding: 6px 16px;
+            margin-bottom: 24px;
+            animation: fadeUp 0.6s ease both;
+        }
+
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 900;
+            line-height: 0.95;
+            letter-spacing: -2px;
+            animation: fadeUp 0.7s ease 0.1s both;
+        }
+
+        h1 span {
+            color: var(--accent);
+            text-shadow: 0 0 40px rgba(0, 229, 255, 0.5);
+        }
+
+        .subtitle {
+            margin-top: 16px;
+            font-size: 13px;
+            color: var(--muted);
+            letter-spacing: 1px;
+            animation: fadeUp 0.7s ease 0.2s both;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 32px;
+            flex-wrap: wrap;
+            animation: fadeUp 0.7s ease 0.3s both;
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 1px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--muted);
+        }
+
+        .status-dot.active {
+            background: var(--accent3);
+            box-shadow: 0 0 8px var(--accent3);
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.warn {
+            background: var(--accent2);
+            box-shadow: 0 0 8px var(--accent2);
+        }
+
+        /* PERMISSION BANNER */
+        .permission-banner {
+            position: relative;
+            z-index: 10;
+            margin: 0 20px 40px;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.05), rgba(0, 229, 255, 0.02));
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            padding: 16px 20px;
+            font-size: 12px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: fadeUp 0.7s ease 0.4s both;
+        }
+
+        .permission-banner .icon {
+            font-size: 20px;
+        }
+
+        .btn-request {
+            margin-left: auto;
+            white-space: nowrap;
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 1px;
+            padding: 8px 16px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+
+        .btn-request:hover {
+            background: var(--glow);
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.2);
+        }
+
+        /* GRID */
+        .sensors-grid {
+            position: relative;
+            z-index: 10;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px 80px;
+            background: var(--border);
+            border: 1px solid var(--border);
+        }
+
+        /* SENSOR CARD */
+        .sensor-card {
+            background: var(--card);
+            padding: 28px 24px;
+            position: relative;
+            overflow: hidden;
+            transition: background 0.3s;
+            animation: fadeUp 0.6s ease both;
+        }
+
+        .sensor-card:hover {
+            background: #122535;
+        }
+
+        .sensor-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .sensor-card:hover::before {
+            opacity: 0.6;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .sensor-icon {
+            font-size: 28px;
+            line-height: 1;
+        }
+
+        .sensor-badge {
+            font-size: 9px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 3px 8px;
+            border: 1px solid;
+        }
+
+        .badge-live {
+            border-color: var(--accent3);
+            color: var(--accent3);
+        }
+
+        .badge-motion {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .badge-env {
+            border-color: var(--accent2);
+            color: var(--accent2);
+        }
+
+        .badge-location {
+            border-color: #c084fc;
+            color: #c084fc;
+        }
+
+        .sensor-name {
+            font-family: 'Syne', sans-serif;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+        }
+
+        .sensor-desc {
+            font-size: 11px;
+            color: var(--muted);
+            line-height: 1.6;
+            margin-bottom: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        /* DATA DISPLAY */
+        .data-display {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 16px;
+            font-size: 12px;
+            min-height: 80px;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(26, 58, 82, 0.5);
+        }
+
+        .data-row:last-child {
+            border-bottom: none;
+        }
+
+        .data-label {
+            color: var(--muted);
+            font-size: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .data-value {
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 13px;
+            text-align: right;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .data-value.warm {
+            color: var(--accent2);
+        }
+
+        .data-value.green {
+            color: var(--accent3);
+        }
+
+        .data-value.purple {
+            color: #c084fc;
+        }
+
+        /* VISUAL ELEMENTS */
+        .bar-container {
+            margin-top: 12px;
+        }
+
+        .bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+
+        .bar-track {
+            height: 4px;
+            background: var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: var(--accent);
+            transition: width 0.5s ease;
+        }
+
+        .bar-fill.warm {
+            background: var(--accent2);
+        }
+
+        .bar-fill.green {
+            background: var(--accent3);
+        }
+
+        /* COMPASS */
+        .compass-wrap {
+            display: flex;
+            justify-content: center;
+            margin-top: 12px;
+        }
+
+        .compass {
+            width: 80px;
+            height: 80px;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            position: relative;
+            background: var(--surface);
+        }
+
+        .compass-needle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 2px;
+            height: 36px;
+            background: linear-gradient(var(--accent2) 50%, var(--accent) 50%);
+            transform-origin: 50% 100%;
+            transform: translateX(-50%) translateY(-100%) rotate(0deg);
+            transition: transform 0.3s ease;
+        }
+
+        .compass-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text);
+        }
+
+        .compass-n {
+            position: absolute;
+            top: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 9px;
+            color: var(--accent2);
+            font-weight: 700;
+        }
+
+        /* GYRO VISUAL */
+        .gyro-visual {
+            display: flex;
+            justify-content: center;
+            margin-top: 12px;
+        }
+
+        .gyro-box {
+            width: 80px;
+            height: 80px;
+            border: 1px solid var(--border);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--surface);
+            transition: transform 0.2s ease;
+        }
+
+        .gyro-inner {
+            font-size: 30px;
+        }
+
+        /* WAVEFORM */
+        .waveform {
+            margin-top: 12px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            overflow: hidden;
+        }
+
+        .wave-bar {
+            flex: 1;
+            background: var(--accent);
+            border-radius: 1px;
+            height: 4px;
+            transition: height 0.15s ease;
+            opacity: 0.8;
+        }
+
+        /* LOCATION CARD */
+        .map-placeholder {
+            margin-top: 12px;
+            height: 80px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .map-grid {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0, 229, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 229, 255, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .map-dot {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--accent2);
+            border-radius: 50%;
+            box-shadow: 0 0 12px var(--accent2);
+            animation: mapPulse 2s infinite;
+        }
+
+        /* BATTERY CARD */
+        .battery-visual {
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .battery-shell {
+            flex: 1;
+            height: 24px;
+            border: 2px solid var(--border);
+            position: relative;
+            border-radius: 2px;
+        }
+
+        .battery-tip {
+            width: 4px;
+            height: 10px;
+            background: var(--border);
+            border-radius: 0 2px 2px 0;
+            align-self: center;
+            margin-left: -1px;
+        }
+
+        .battery-level {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            bottom: 2px;
+            background: var(--accent3);
+            border-radius: 1px;
+            transition: width 1s ease;
+        }
+
+        /* PROXIMITY */
+        .proximity-rings {
+            display: flex;
+            justify-content: center;
+            margin-top: 12px;
+            position: relative;
+            height: 80px;
+            align-items: center;
+        }
+
+        .ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid var(--accent);
+            opacity: 0;
+            animation: ringPulse 2s infinite;
+        }
+
+        .ring:nth-child(1) {
+            width: 20px;
+            height: 20px;
+            animation-delay: 0s;
+        }
+
+        .ring:nth-child(2) {
+            width: 40px;
+            height: 40px;
+            animation-delay: 0.4s;
+        }
+
+        .ring:nth-child(3) {
+            width: 60px;
+            height: 60px;
+            animation-delay: 0.8s;
+        }
+
+        .ring:nth-child(4) {
+            width: 80px;
+            height: 80px;
+            animation-delay: 1.2s;
+        }
+
+        /* AMBIENT LIGHT */
+        .light-meter {
+            margin-top: 12px;
+            height: 48px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        .light-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, #fbbf24, #fde68a, transparent);
+            transition: height 1s ease;
+            opacity: 0.7;
+        }
+
+        /* STATUS ROW */
+        .sensor-status {
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 10px;
+            color: var(--muted);
+            letter-spacing: 1px;
+        }
+
+        .status-indicator {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--muted);
+        }
+
+        .status-indicator.on {
+            background: var(--accent3);
+            box-shadow: 0 0 6px var(--accent3);
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.warn {
+            background: var(--accent2);
+            box-shadow: 0 0 6px var(--accent2);
+        }
+
+        /* FOOTER */
+        footer {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 40px 20px;
+            font-size: 10px;
+            color: var(--muted);
+            letter-spacing: 2px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* ANIMATIONS */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        @keyframes mapPulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.8);
+                opacity: 0.5;
+            }
+        }
+
+        @keyframes ringPulse {
+            0% {
+                opacity: 0.6;
+                transform: scale(0.8);
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(1);
+            }
+        }
+
+        /* Stagger card animations */
+        .sensor-card:nth-child(1) {
+            animation-delay: 0.5s;
+        }
+
+        .sensor-card:nth-child(2) {
+            animation-delay: 0.6s;
+        }
+
+        .sensor-card:nth-child(3) {
+            animation-delay: 0.7s;
+        }
+
+        .sensor-card:nth-child(4) {
+            animation-delay: 0.8s;
+        }
+
+        .sensor-card:nth-child(5) {
+            animation-delay: 0.9s;
+        }
+
+        .sensor-card:nth-child(6) {
+            animation-delay: 1.0s;
+        }
+
+        .sensor-card:nth-child(7) {
+            animation-delay: 1.1s;
+        }
+
+        .sensor-card:nth-child(8) {
+            animation-delay: 1.2s;
+        }
+
+        /* NOT SUPPORTED */
+        .not-supported {
+            font-size: 11px;
+            color: var(--muted);
+            font-style: italic;
+            padding: 8px 0;
+        }
+
+        .scan-line {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            animation: scanDown 6s linear infinite;
+            pointer-events: none;
+            opacity: 0.3;
+            z-index: 999;
+        }
+
+        @keyframes scanDown {
+            from {
+                top: 0;
+            }
+
+            to {
+                top: 100vh;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="scan-line"></div>
+
+    <header>
+        <div class="logo-tag">◈ SensorKit v2.4</div>
+        <h1>MOBILE<br><span>SENSORS</span></h1>
+        <p class="subtitle">// real-time device sensor explorer</p>
+        <div class="status-bar">
+            <div class="status-pill">
+                <div class="status-dot active" id="gyro-dot"></div>
+                <span id="gyro-status">GYROSCOPE</span>
+            </div>
+            <div class="status-pill">
+                <div class="status-dot active" id="accel-dot"></div>
+                <span id="accel-status">ACCELEROMETER</span>
+            </div>
+            <div class="status-pill">
+                <div class="status-dot" id="geo-dot"></div>
+                <span id="geo-status">GEOLOCATION</span>
+            </div>
+            <div class="status-pill">
+                <div class="status-dot" id="bat-dot"></div>
+                <span id="bat-status">BATTERY</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="permission-banner">
+        <span class="icon">🔐</span>
+        <span>Some sensors require device permissions. Use on a <strong>real mobile device</strong> for full
+            functionality. Desktop shows simulated data.</span>
+        <button class="btn-request" onclick="requestAllPermissions()">Enable Sensors</button>
+    </div>
+
+    <div class="sensors-grid">
+
+        <!-- ACCELEROMETER -->
+        <div class="sensor-card">
+            <div class="card-header">
+                <span class="sensor-icon">📐</span>
+                <span class="sensor-badge badge-motion">MOTION</span>
+            </div>
+            <div class="sensor-name">Accelerometer</div>
+            <p class="sensor-desc">Measures device acceleration forces along X, Y, Z axes including gravity.</p>
+            <div class="data-display">
+                <div class="data-row">
+                    <span class="data-label">X Axis</span>
+                    <span class="data-value" id="accel-x">—</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Y Axis</span>
+                    <span class="data-value" id="accel-y">—</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Z Axis</span>
+                    <span class="data-value" id="accel-z">—</span>
+                </div>
+            </div>
+            <div class="bar-container">
+                <div class="bar-label"><span>TILT X</span><span id="tilt-x-val">0%</span></div>
+                <div class="bar-track">
+                    <div class="bar-fill" id="tilt-x-bar" style="width:50%"></div>
+                </div>
+            </div>
+            <div class="sensor-status">
+                <div class="status-indicator on" id="accel-ind"></div>
+                <span id="accel-msg">ACTIVE — READING</span>
+            </div>
+        </div>
+
+        <!-- GYROSCOPE -->
+        <div class="sensor-card">
+            <div class="card-header">
+                <span class="sensor-icon">🌀</span>
+                <span class="sensor-badge badge-motion">MOTION</span>
+            </div>
+            <div class="sensor-name">Gyroscope</div>
+            <p class="sensor-desc">Measures angular rotation rate of the device in 3D space.</p>
+            <div class="data-display">
+                <div class="data-row">
+                    <span class="data-label">Alpha (Z)</span>
+                    <span class="data-value" id="gyro-alpha">—</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Beta (X)</span>
+                    <span class="data-value" id="gyro-beta">—</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Gamma (Y)</span>
+                    <span class="data-value" id="gyro-gamma">—</span>
+                </div>
+            </div>
+            <div class="gyro-visual">
+                <div class="gyro-box" id="gyro-box">
+                    <div class="gyro-inner">📱</div>
+                </div>
+            </div>
+            <div class="sensor-status">
+                <div class="status-indicator on" id="gyro-ind"></div>
+                <span id="gyro-msg">ACTIVE — READING</span>
+            </div>
+        </div>
+
+        <!-- COMPASS / MAGNETOMETER -->
+        <div class="sensor-card">
+            <div class="card-header">
+                <span class="sensor-icon">🧭</span>
+                <span class="sensor-badge badge-motion">ORIENTATION</span>
+            </div>
+            <div class="sensor-name">Compass</div>
+            <p class="sensor-desc">Magnetic heading relative to geographic north using the magnetometer.</p>
+            <div class="data-display">
+                <div class="data-row">
+                    <span class="data-label">Heading</span>
+                    <span class="data-value" id="compass-deg">—</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Accuracy</span>
+                    <span class="data-value green" id="compass-acc">—</span>
+                </div>
+            </div>
+            <div class="compass-wrap">
+                <div class="compass">
+                    <div class="compass-n">N</div>
+                    <div class="compass-needle" id="compass-needle"></div>
+                    <div class="compass-center"></div>
+                </div>
+            </div>
+            <div class="sensor-status">
+                <div class="status-indicator on" id="compass-ind"></div>
+                <span id="compass-msg">ACTIVE — READING</span>
+            </div>
+        </div>
+
+        <!-- GEOLOCATION -->
+        <div class="sensor-card">
+            <div class="card-header">
+                <span class="sensor-icon">📍</span>
+                <span class="sensor-badge badge-location">LOCATION</span>
+            </div>
+            <div class="sensor-name">Geolocation</div>
+            <p class="sensor-desc">GPS-based geographic coordinates and altitude from satellite triangulation.</p>
+            <div class="data-display">
+                <div class="data-row">
+                    <span class="data-label">Latitude</span>
+                    <span class="data-value purple" id="geo-lat">—</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Longitude</span>
+                    <span class="data-value purple" id="geo-lon">—</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Accuracy</span>
+                    <span class="data-value" id="geo-acc">—</span>
+                </div>
+            </div>
+            <div class="map-placeholder">
+                <div class="map-grid"></div>
+                <div class="map-dot" id="map-dot" style="top:45%;left:48%"></div>
+            </div>
+            <div class="sensor-status">
+                <div class="status-indicator warn" id="geo-ind"></div>
+                <span id="geo-msg">PERMISSION NEEDED</span>
+            </div>
+        </div>
+
+        <!-- BATTERY -->
+        <div class="sensor-card">
+            <div class="card-header">
+                <span class="sensor-icon">🔋</span>
+                <span class="sensor-badge badge-env">SYSTEM</span>
+            </div>
+            <div class="sensor-name">Battery</div>
+            <p class="sensor-desc">Device battery level, charging state and estimated discharge time.</p>
+            <div class="data-display">
+                <div class="data-row">
+                    <span class="data-label">Level</span>
+                    <span class="data-value green" id="bat-level">—</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Status</span>
+                    <span class="data-value" id="bat-charging">—</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Discharge</span>
+                    <span class="data-value" id="bat-time">—</span>
+                </div>
+            </div>
+            <div class="battery-visual">
+                <div class="battery-shell">
+                    <div class="battery-level" id="bat-bar" style="width:0%"></div>
+                </div>
+                <div class="battery-tip"></div>
+            </div>
+            <div class="sensor-status">
+                <div class="status-indicator warn" id="bat-ind"></div>
+                <span id="bat-msg">AWAITING API</span>
+            </div>
+        </div>
+
+        <!-- MICROPHONE LEVEL -->
+        <div class="sensor-card">
+            <div class="card-header">
+                <span class="sensor-icon">🎙️</span>
+                <span class="sensor-badge badge-env">AUDIO</span>
+            </div>
+            <div class="sensor-name">Microphone</div>
+            <p class="sensor-desc">Real-time audio level detection using the Web Audio API and MediaStream.</p>
+            <div class="data-display">
+                <div class="data-row">
+                    <span class="data-label">Volume Level</span>
+                    <span class="data-value" id="mic-level">—</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Peak</span>
+                    <span class="data-value warm" id="mic-peak">—</span>
+                </div>
+            </div>
+            <div class="waveform" id="waveform">
+                <!-- bars injected by JS -->
+            </div>
+            <div class="sensor-status">
+                <div class="status-indicator warn" id="mic-ind"></div>
+                <span id="mic-msg">PERMISSION NEEDED</span>
+            </div>
+        </div>
+
+        <!-- AMBIENT LIGHT -->
+        <div class="sensor-card">
+            <div class="card-header">
+                <span class="sensor-icon">☀️</span>
+                <span class="sensor-badge badge-env">ENVIRONMENT</span>
+            </div>
+            <div class="sensor-name">Ambient Light</div>
+            <p class="sensor-desc">Illuminance sensor measuring surrounding light intensity in lux units.</p>
+            <div class="data-display">
+                <div class="data-row">
+                    <span class="data-label">Illuminance</span>
+                    <span class="data-value warm" id="light-lux">—</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Condition</span>
+                    <span class="data-value" id="light-cond">—</span>
+                </div>
+            </div>
+            <div class="light-meter">
+                <div class="light-fill" id="light-fill" style="height:30%"></div>
+            </div>
+            <div class="sensor-status">
+                <div class="status-indicator warn" id="light-ind"></div>
+                <span id="light-msg">LIMITED SUPPORT</span>
+            </div>
+        </div>
+
+        <!-- PROXIMITY -->
+        <div class="sensor-card">
+            <div class="card-header">
+                <span class="sensor-icon">📡</span>
+                <span class="sensor-badge badge-motion">PROXIMITY</span>
+            </div>
+            <div class="sensor-name">Proximity</div>
+            <p class="sensor-desc">Infrared-based detection of nearby objects — used for call screen-off behavior.</p>
+            <div class="data-display">
+                <div class="data-row">
+                    <span class="data-label">Distance</span>
+                    <span class="data-value" id="prox-dist">—</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">State</span>
+                    <span class="data-value green" id="prox-state">CLEAR</span>
+                </div>
+            </div>
+            <div class="proximity-rings">
+                <div class="ring"></div>
+                <div class="ring"></div>
+                <div class="ring"></div>
+                <div class="ring"></div>
+            </div>
+            <div class="sensor-status">
+                <div class="status-indicator warn" id="prox-ind"></div>
+                <span id="prox-msg">LIMITED SUPPORT</span>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>◈ SENSORKIT — BUILT WITH WEB SENSOR APIS — WORKS BEST ON MOBILE ◈</footer>
+
+    <script>
+        // ===================================================
+        // SENSOR INITIALIZATION
+        // ===================================================
+
+        // --- WAVEFORM ---
+        const waveform = document.getElementById('waveform');
+        const BARS = 32;
+        const waveBars = [];
+        for (let i = 0; i < BARS; i++) {
+            const b = document.createElement('div');
+            b.className = 'wave-bar';
+            waveform.appendChild(b);
+            waveBars.push(b);
+        }
+
+        // --- REQUEST ALL PERMISSIONS ---
+        function requestAllPermissions() {
+            startGeolocation();
+            startMic();
+            startBattery();
+            // iOS motion permission
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission()
+                    .then(state => {
+                        if (state === 'granted') {
+                            window.addEventListener('deviceorientation', handleOrientation, true);
+                            window.addEventListener('devicemotion', handleMotion, true);
+                        }
+                    }).catch(console.warn);
+            }
+        }
+
+        // ===================================================
+        // 1. ACCELEROMETER + ORIENTATION (devicemotion / deviceorientation)
+        // ===================================================
+        let sim = { ax: 0, ay: 0, az: 9.8, alpha: 0, beta: 0, gamma: 0 };
+        let hasRealMotion = false;
+
+        function handleOrientation(e) {
+            if (e.alpha !== null) {
+                hasRealMotion = true;
+                sim.alpha = e.alpha;
+                sim.beta = e.beta;
+                sim.gamma = e.gamma;
+            }
+        }
+
+        function handleMotion(e) {
+            const a = e.accelerationIncludingGravity;
+            if (a && a.x !== null) {
+                hasRealMotion = true;
+                sim.ax = a.x; sim.ay = a.y; sim.az = a.z;
+            }
+        }
+
+        window.addEventListener('deviceorientation', handleOrientation, true);
+        window.addEventListener('devicemotion', handleMotion, true);
+
+        // Simulate movement on desktop
+        function simulateMotion() {
+            if (!hasRealMotion) {
+                const t = Date.now() / 1000;
+                sim.ax = Math.sin(t * 0.5) * 2;
+                sim.ay = Math.cos(t * 0.3) * 3;
+                sim.az = 9.8 + Math.sin(t * 0.7) * 0.5;
+                sim.alpha = (sim.alpha + 0.3) % 360;
+                sim.beta = Math.sin(t * 0.4) * 30;
+                sim.gamma = Math.cos(t * 0.6) * 20;
+            }
+        }
+
+        function updateMotionUI() {
+            simulateMotion();
+            document.getElementById('accel-x').textContent = sim.ax.toFixed(3) + ' m/s²';
+            document.getElementById('accel-y').textContent = sim.ay.toFixed(3) + ' m/s²';
+            document.getElementById('accel-z').textContent = sim.az.toFixed(3) + ' m/s²';
+
+            const tiltPct = Math.min(100, Math.max(0, ((sim.gamma + 90) / 180) * 100));
+            document.getElementById('tilt-x-bar').style.width = tiltPct + '%';
+            document.getElementById('tilt-x-val').textContent = Math.round(tiltPct) + '%';
+
+            document.getElementById('gyro-alpha').textContent = sim.alpha.toFixed(1) + '°';
+            document.getElementById('gyro-beta').textContent = sim.beta.toFixed(1) + '°';
+            document.getElementById('gyro-gamma').textContent = sim.gamma.toFixed(1) + '°';
+
+            // Gyro box tilt
+            document.getElementById('gyro-box').style.transform =
+                `rotateX(${-sim.beta * 0.3}deg) rotateZ(${sim.gamma * 0.3}deg)`;
+
+            // Compass needle
+            document.getElementById('compass-needle').style.transform =
+                `translateX(-50%) translateY(-100%) rotate(${sim.alpha}deg)`;
+            document.getElementById('compass-deg').textContent = Math.round(sim.alpha) + '°';
+            const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'N'];
+            document.getElementById('compass-acc').textContent =
+                dirs[Math.round(sim.alpha / 45) % 8];
+        }
+
+        setInterval(updateMotionUI, 100);
+
+        // ===================================================
+        // 2. GEOLOCATION
+        // ===================================================
+        function startGeolocation() {
+            if (!navigator.geolocation) {
+                setGeoFallback(); return;
+            }
+            document.getElementById('geo-msg').textContent = 'REQUESTING...';
+            navigator.geolocation.watchPosition(pos => {
+                document.getElementById('geo-lat').textContent = pos.coords.latitude.toFixed(5) + '°';
+                document.getElementById('geo-lon').textContent = pos.coords.longitude.toFixed(5) + '°';
+                document.getElementById('geo-acc').textContent = Math.round(pos.coords.accuracy) + ' m';
+                document.getElementById('geo-ind').className = 'status-indicator on';
+                document.getElementById('geo-msg').textContent = 'ACTIVE — GPS LOCK';
+                document.getElementById('geo-dot').className = 'status-dot active';
+            }, err => {
+                setGeoFallback(err.message);
+            }, { enableHighAccuracy: true });
+        }
+
+        function setGeoFallback(msg) {
+            document.getElementById('geo-lat').textContent = '—';
+            document.getElementById('geo-lon').textContent = '—';
+            document.getElementById('geo-acc').textContent = '—';
+            document.getElementById('geo-ind').className = 'status-indicator warn';
+            document.getElementById('geo-msg').textContent = msg ? 'DENIED' : 'NOT SUPPORTED';
+        }
+
+        // ===================================================
+        // 3. BATTERY
+        // ===================================================
+        function startBattery() {
+            if (!navigator.getBattery) {
+                setBatFallback(); return;
+            }
+            navigator.getBattery().then(bat => {
+                function updateBat() {
+                    const pct = Math.round(bat.level * 100);
+                    document.getElementById('bat-level').textContent = pct + '%';
+                    document.getElementById('bat-charging').textContent = bat.charging ? '⚡ CHARGING' : 'DISCHARGING';
+                    const t = bat.dischargingTime;
+                    document.getElementById('bat-time').textContent =
+                        isFinite(t) ? Math.round(t / 60) + ' min left' : (bat.charging ? 'FULL / AC' : '—');
+                    document.getElementById('bat-bar').style.width = pct + '%';
+                    document.getElementById('bat-bar').style.background =
+                        pct > 50 ? 'var(--accent3)' : pct > 20 ? '#fbbf24' : 'var(--accent2)';
+                    document.getElementById('bat-ind').className = 'status-indicator on';
+                    document.getElementById('bat-msg').textContent = 'ACTIVE — API READY';
+                    document.getElementById('bat-dot').className = 'status-dot active';
+                }
+                updateBat();
+                bat.addEventListener('levelchange', updateBat);
+                bat.addEventListener('chargingchange', updateBat);
+            }).catch(setBatFallback);
+        }
+
+        function setBatFallback() {
+            // Simulate
+            let fakeBat = 78;
+            function simBat() {
+                fakeBat = Math.max(5, Math.min(100, fakeBat + (Math.random() > 0.5 ? 0.1 : -0.1)));
+                document.getElementById('bat-level').textContent = fakeBat.toFixed(0) + '%';
+                document.getElementById('bat-charging').textContent = '~ SIMULATED';
+                document.getElementById('bat-time').textContent = Math.round(fakeBat * 3.6) + ' min';
+                document.getElementById('bat-bar').style.width = fakeBat + '%';
+                document.getElementById('bat-ind').className = 'status-indicator warn';
+                document.getElementById('bat-msg').textContent = 'SIMULATED DATA';
+            }
+            simBat();
+            setInterval(simBat, 3000);
+        }
+
+        startBattery();
+
+        // ===================================================
+        // 4. MICROPHONE
+        // ===================================================
+        let micActive = false;
+        let micPeak = 0;
+
+        function startMic() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                document.getElementById('mic-msg').textContent = 'NOT SUPPORTED';
+                return;
+            }
+            navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+                .then(stream => {
+                    micActive = true;
+                    const ctx = new AudioContext();
+                    const src = ctx.createMediaStreamSource(stream);
+                    const analyser = ctx.createAnalyser();
+                    analyser.fftSize = 64;
+                    src.connect(analyser);
+                    const data = new Uint8Array(analyser.frequencyBinCount);
+
+                    document.getElementById('mic-ind').className = 'status-indicator on';
+                    document.getElementById('mic-msg').textContent = 'ACTIVE — LISTENING';
+
+                    function tick() {
+                        analyser.getByteFrequencyData(data);
+                        const avg = data.reduce((a, b) => a + b) / data.length;
+                        const pct = Math.round(avg / 255 * 100);
+                        if (pct > micPeak) micPeak = pct;
+
+                        document.getElementById('mic-level').textContent = pct + ' dB';
+                        document.getElementById('mic-peak').textContent = micPeak + ' dB';
+
+                        // Update waveform bars
+                        waveBars.forEach((bar, i) => {
+                            const val = data[i % data.length];
+                            const h = Math.max(4, (val / 255) * 44);
+                            bar.style.height = h + 'px';
+                            bar.style.opacity = val > 100 ? '1' : '0.4';
+                        });
+                        requestAnimationFrame(tick);
+                    }
+                    tick();
+                })
+                .catch(() => {
+                    document.getElementById('mic-msg').textContent = 'PERMISSION DENIED';
+                    simulateMic();
+                });
+        }
+
+        function simulateMic() {
+            let phase = 0;
+            setInterval(() => {
+                phase += 0.2;
+                const base = 20 + Math.abs(Math.sin(phase)) * 40;
+                document.getElementById('mic-level').textContent = '~ ' + Math.round(base) + ' dB';
+                waveBars.forEach((bar, i) => {
+                    const h = Math.max(4, base * 0.5 * Math.abs(Math.sin(phase + i * 0.4)));
+                    bar.style.height = h + 'px';
+                    bar.style.opacity = '0.4';
+                });
+            }, 80);
+        }
+
+        simulateMic(); // start simulated, override when mic granted
+
+        // ===================================================
+        // 5. AMBIENT LIGHT
+        // ===================================================
+        if ('AmbientLightSensor' in window) {
+            try {
+                const sensor = new AmbientLightSensor();
+                sensor.addEventListener('reading', () => {
+                    const lux = sensor.illuminance;
+                    document.getElementById('light-lux').textContent = lux.toFixed(1) + ' lux';
+                    const pct = Math.min(100, (lux / 1000) * 100);
+                    document.getElementById('light-fill').style.height = pct + '%';
+                    const cond = lux < 50 ? 'DARK' : lux < 300 ? 'DIM' : lux < 700 ? 'BRIGHT' : 'VERY BRIGHT';
+                    document.getElementById('light-cond').textContent = cond;
+                    document.getElementById('light-ind').className = 'status-indicator on';
+                    document.getElementById('light-msg').textContent = 'ACTIVE — READING';
+                });
+                sensor.start();
+            } catch (e) { simulateLight(); }
+        } else { simulateLight(); }
+
+        function simulateLight() {
+            let lux = 350;
+            setInterval(() => {
+                lux = Math.max(10, Math.min(1000, lux + (Math.random() - 0.5) * 30));
+                document.getElementById('light-lux').textContent = '~ ' + Math.round(lux) + ' lux';
+                const pct = Math.min(100, (lux / 1000) * 100);
+                document.getElementById('light-fill').style.height = pct + '%';
+                const cond = lux < 50 ? 'DARK' : lux < 300 ? 'DIM' : lux < 700 ? 'BRIGHT' : 'VERY BRIGHT';
+                document.getElementById('light-cond').textContent = '~ ' + cond;
+                document.getElementById('light-msg').textContent = 'SIMULATED DATA';
+            }, 1500);
+        }
+
+        // ===================================================
+        // 6. PROXIMITY
+        // ===================================================
+        if ('ProximitySensor' in window) {
+            try {
+                const prox = new ProximitySensor();
+                prox.addEventListener('reading', () => {
+                    const d = prox.distance;
+                    document.getElementById('prox-dist').textContent = d + ' cm';
+                    document.getElementById('prox-state').textContent = d < 5 ? '⚠ NEAR' : 'CLEAR';
+                    document.getElementById('prox-ind').className = 'status-indicator on';
+                    document.getElementById('prox-msg').textContent = 'ACTIVE — READING';
+                });
+                prox.start();
+            } catch (e) { simulateProx(); }
+        } else { simulateProx(); }
+
+        function simulateProx() {
+            let d = 50;
+            setInterval(() => {
+                d = Math.max(0, Math.min(100, d + (Math.random() - 0.5) * 10));
+                document.getElementById('prox-dist').textContent = '~ ' + Math.round(d) + ' cm';
+                document.getElementById('prox-state').textContent = d < 10 ? '⚠ NEAR' : 'CLEAR';
+                document.getElementById('prox-msg').textContent = 'SIMULATED DATA';
+            }, 2000);
+        }
+
+    </script>
+</body>
+
+</html>
